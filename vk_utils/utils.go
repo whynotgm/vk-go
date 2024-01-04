@@ -11,7 +11,7 @@ import (
 func (vk *VKBot) RequestMethod(method string, params ...string) (body []byte, err error) {
 	url := fmt.Sprintf("%s%s?access_token=%s&v=%s", vk.ApiUrl, method, vk.token, vk.version)
 
-	// append params to url
+	// params like: "key=value" TODO: Maybe POST request?
 	if len(params) != 0 {
 		url += "&" + strings.Join(params, "&")
 	}
@@ -56,4 +56,9 @@ func NewVKBot(config *Config, token, groupId string) *VKBot {
 	// configure LP
 	VK.SetupLP(resp.Response.Server, resp.Response.Key, resp.Response.Ts)
 	return VK
+}
+
+func (vk *VKBot) sendMessage() (resp []byte, err error) {
+	resp, err = vk.RequestMethod("messages.send")
+	return
 }
