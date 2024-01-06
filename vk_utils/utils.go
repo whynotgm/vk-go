@@ -30,7 +30,7 @@ import (
 func (vk *VKBot) RequestMethod(method string, params ...string) (body []byte, err error) {
 	address := fmt.Sprintf("%s%s?access_token=%s&v=%s", vk.ApiUrl, method, vk.token, vk.Version)
 
-	// params like: "key=value" TODO: Maybe POST request?
+	// params like: "key=value"
 	if len(params) != 0 {
 		address += "&" + strings.Join(params, "&")
 	}
@@ -44,7 +44,7 @@ func HTTPGetBody(link string) (body []byte, err error) {
 	if err != nil {
 		return
 	}
-	defer response.Body.Close()
+	defer response.Body.Close() // no errors
 	return io.ReadAll(response.Body)
 }
 
