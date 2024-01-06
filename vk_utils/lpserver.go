@@ -11,7 +11,7 @@ type GetLpResponse struct {
 }
 
 func (vk *VKBot) GetLPServer() (resp *GetLpResponse, err error) {
-	response, err := vk.RequestMethod("groups.getLongPollServer", "group_id="+vk.groupId)
+	response, err := vk.RequestMethod("groups.getLongPollServer", "group_id="+vk.GroupId)
 	if err != nil {
 		return
 	}
