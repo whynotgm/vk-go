@@ -1,6 +1,8 @@
 package vk_utils
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func (vk *VKBot) HandleUpdates(updates []Update) {
 	for _, update := range updates {
@@ -9,13 +11,23 @@ func (vk *VKBot) HandleUpdates(updates []Update) {
 		}
 		switch update.Type {
 		case "message_new":
-			messageNewHandler(update)
-
+			err := vk.messageNewHandler(update)
+			if err != nil {
+				fmt.Println("Error:", err)
+			}
+		default:
+			fmt.Println("Unknown event type!")
 		}
 
 	}
 }
 
-func messageNewHandler(event Update) {
-	fmt.Println(event.Text)
+func (vk *VKBot) messageNewHandler(event Update) (err error) {
+	answer := vk.commandHandler(event)
+	if answer == "" {
+		return
+	}
+
+	_, err = vk.sendMessage(event, answer)
+	return
 }

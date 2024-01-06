@@ -3,17 +3,22 @@ package vk_utils
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/tidwall/gjson"
+	"github.com/tidwall/pretty"
+	"net/url"
 )
 
 type LPResponse struct {
 	Ts      string   `json:"ts,omitempty"`
 	Updates []Update `json:"updates"`
 }
+
 type Update struct {
-	Type    string `json:"type,omitempty"`
-	EventId string `json:"event_id,omitempty"`
-	V       string `json:"v,omitempty"`
-	Object  `json:"object"`
+	Type      string `json:"type,omitempty"`
+	EventId   string `json:"event_id,omitempty"`
+	V         string `json:"v,omitempty"`
+	Object    `json:"object"`
+	rawObject string
 }
 
 type Object struct {
@@ -33,14 +38,18 @@ type Message struct {
 
 type JSONObject map[string]any
 
-type AttachObject struct {
-	Id int `json:"id,omitempty"`
+func setRawObject(json string, resp *LPResponse) {
+	res := gjson.Get(json, "updates").Array()
+	for i, re := range res {
+		resp.Updates[i].rawObject = url.QueryEscape(re.Raw)
+	}
+
 }
 
 func (vk *VKBot) GetUpdates() (resp *LPResponse, err error) {
-	url := fmt.Sprintf("%s?act=a_check&key=%s&ts=%s&wait=%d", vk.lpServer, vk.key, vk.ts, 25)
+	addr := fmt.Sprintf("%s?act=a_check&key=%s&ts=%s&wait=%d", vk.lpServer, vk.key, vk.ts, 25)
 
-	body, err := HTTPGetBody(url)
+	body, err := HTTPGetBody(addr)
 	if err != nil {
 		return
 	}
@@ -49,12 +58,18 @@ func (vk *VKBot) GetUpdates() (resp *LPResponse, err error) {
 	err = json.Unmarshal(body, resp)
 	vk.ts = resp.Ts
 
+	setRawObject(string(
+		pretty.Pretty(body)), resp)
+
 	return
 }
 
-func (vk *VKBot) LongPoll(upd chan *LPResponse) {
+func (vk *VKBot) LongPoll(upd chan *LPResponse) error {
 	for {
-		resp, _ := vk.GetUpdates()
+		resp, err := vk.GetUpdates()
+		if err != nil {
+			return err
+		}
 		upd <- resp
 	}
 }
